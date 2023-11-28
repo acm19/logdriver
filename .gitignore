@@ -12,3 +12,6 @@
 *.out
 plugin/plugin-build
 testserver/testserver
+
+# IDE
+.idea/

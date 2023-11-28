@@ -1,11 +1,13 @@
 # Plugin parameters
-PLUGIN_NAME=monmohan/tldriver
+PLUGIN_NAME=acm/driver
 PLUGIN_TAG=v1
 
 all: clean build-image create-plugin
 
 clean:
 	@echo "Removing plugin build directory"
+	# Change read-only file permission so they can be deleted
+	chmod 777 -R --silent plugin-build/ || true
 	rm -rf ./plugin-build
 
 build-image:
@@ -27,5 +29,5 @@ create-plugin:
 	@echo "### enable plugin ${PLUGIN_NAME}:${PLUGIN_TAG}"
 	docker plugin enable ${PLUGIN_NAME}:${PLUGIN_TAG}
 
-
-	
+run:
+	docker run -it --rm --name logger --log-driver ${PLUGIN_NAME}:${PLUGIN_TAG} idt-poc/logger:local 100000 0 1

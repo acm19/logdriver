@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -32,10 +32,16 @@ type ReadLogsRequest struct {
 
 func handlers(h *sdk.Handler, d *driver) {
 	h.HandleFunc("/LogDriver.StartLogging", func(w http.ResponseWriter, r *http.Request) {
-		body, _ := ioutil.ReadAll(r.Body)
 		var req StartLoggingRequest
-		fmt.Fprintf(os.Stdout, "Start logging request was called for the container : %s", body)
-		json.Unmarshal(body, &req)
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if req.Info.ContainerID == "" {
+			respond(errors.New("must provide container id in log context"), w)
+			return
+		}
+
 		err := d.StartLogging(req.File, req.Info)
 		respond(err, w)
 	})

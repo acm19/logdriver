@@ -1,7 +1,8 @@
 ### Description
-A sample docker log driver that writes to its stdout
 
-I have written couple of blogs to explain the plugin and its usage -
+A sample docker log driver that writes to its stdout.
+
+Forked from Monmohan (kudos) band based on a written couple of blogs to explain the plugin and its usage -
 
 * [Writing A Docker Log Driver Plugin - Part I](https://medium.com/@software_factotum/writing-a-docker-log-driver-plugin-7275d99d07be)
 

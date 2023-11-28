@@ -4,16 +4,16 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
-	"io"
-	"os"
-	"sync"
-	"syscall"
-
+	"github.com/containerd/fifo"
 	"github.com/docker/docker/api/types/plugins/logdriver"
 	"github.com/docker/docker/daemon/logger"
 	protoio "github.com/gogo/protobuf/io"
 	"github.com/pkg/errors"
-	"github.com/tonistiigi/fifo"
+	"io"
+	"io/fs"
+	"os"
+	"sync"
+	"syscall"
 )
 
 type driver struct {
@@ -33,6 +33,7 @@ func newDriver() *driver {
 }
 
 func (d *driver) StartLogging(file string, logCtx logger.Info) error {
+	fmt.Fprintf(os.Stdout, "StartLogging file: %s\n", file)
 	d.mu.Lock()
 	if _, exists := d.logs[file]; exists {
 		d.mu.Unlock()
@@ -62,6 +63,7 @@ func (d *driver) PrintState() {
 }
 
 func (d *driver) StopLogging(file string) error {
+	fmt.Fprintf(os.Stdout, "Stop logging: %s\n", file)
 	d.mu.Lock()
 	lf, ok := d.logs[file]
 	if ok {
@@ -78,8 +80,10 @@ func consumeLog(lf *dockerInput) {
 	var buf logdriver.LogEntry
 	for {
 		if err := dec.ReadMsg(&buf); err != nil {
-			if err == io.EOF {
-				fmt.Fprintf(os.Stderr, "FIFO Stream closed  %s", err.Error())
+			var s *fs.PathError
+
+			if errors.As(err, &s) {
+				fmt.Fprintf(os.Stdout, "Stream closed  %s\n", err.Error())
 				lf.stream.Close()
 				return
 			}
